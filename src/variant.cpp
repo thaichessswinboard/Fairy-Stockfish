@@ -290,7 +290,7 @@ namespace {
         return v;
     }
     Variant* seirawan_variant() {
-        Variant* v = fairy_variant_base();
+        Variant* v = chess_variant();
         v->variantTemplate = "seirawan";
         v->pieceToCharTable = "PNBRQ.E..........H...Kpnbrq.e..........h...k";
         v->add_piece(ARCHBISHOP, 'h');
