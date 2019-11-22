@@ -23,6 +23,7 @@
 #include "types.h"
 #include "piece.h"
 #include "variant.h"
+#include "uci.h"
 
 Value PieceValue[PHASE_NB][PIECE_NB] = {
   { VALUE_ZERO, PawnValueMg, KnightValueMg, BishopValueMg, RookValueMg, QueenValueMg,
@@ -120,6 +121,8 @@ constexpr Score PBonus[RANK_NB][FILE_NB] =
 
 Score psq[PIECE_NB][SQUARE_NB + 1];
 
+int pvs[4] = {16, 6, 16, 6};
+
 // init() initializes piece-square tables: the white halves of the tables are
 // copied from Bonus[] adding the piece value, then the black halves of the
 // tables are initialized by flipping and changing the sign of the white scores.
@@ -138,9 +141,10 @@ void init(const Variant* v) {
       const PieceInfo* pi = pieceMap.find(pt)->second;
       if (pi->sliderQuiet.size() || pi->sliderCapture.size())
       {
-          int offset = pi->stepsQuiet.size() || pi->stepsCapture.size() ? 16 : 6;
-          score = make_score(mg_value(score) * (v->maxRank + v->maxFile + offset) / (14 + offset),
-                             eg_value(score) * (v->maxRank + v->maxFile + offset) / (14 + offset));
+          int offsetMg = pi->stepsQuiet.size() || pi->stepsCapture.size() ? pvs[0] : pvs[1];
+          int offsetEg = pi->stepsQuiet.size() || pi->stepsCapture.size() ? pvs[2] : pvs[3];
+          score = make_score(mg_value(score) * (v->maxRank + v->maxFile + offsetMg) / (14 + offsetMg),
+                             eg_value(score) * (v->maxRank + v->maxFile + offsetEg) / (14 + offsetEg));
       }
 
       // For drop variants, halve the piece values
@@ -170,5 +174,11 @@ void init(const Variant* v) {
       psq[~pc][SQ_NONE] = -psq[pc][SQ_NONE];
   }
 }
+
+void init_cur() { init(variants.find(Options["UCI_Variant"])->second); }
+
+TUNE(SetRange(0, 50),
+     pvs,
+     init_cur);
 
 } // namespace PSQT
