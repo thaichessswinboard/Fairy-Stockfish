@@ -788,12 +788,13 @@ namespace {
     }
 
     // Scale by maximum promotion piece value
-    Value maxMg = VALUE_ZERO, maxEg = VALUE_ZERO;
+    Value maxMg = PawnValueMg, maxEg = PawnValueEg;
     for (PieceType pt : pos.promotion_piece_types())
-    {
-        maxMg = std::max(maxMg, PieceValue[MG][pt]);
-        maxEg = std::max(maxEg, PieceValue[EG][pt]);
-    }
+        if (!pos.promotion_limit(pt) || pos.promotion_limit(pt) > pos.count(Us, pt))
+        {
+            maxMg = std::max(maxMg, PieceValue[MG][pt]);
+            maxEg = std::max(maxEg, PieceValue[EG][pt]);
+        }
     score = make_score(mg_value(score) * int(maxMg - PawnValueMg) / (QueenValueMg - PawnValueMg),
                        eg_value(score) * int(maxEg - PawnValueEg) / (QueenValueEg - PawnValueEg));
 
